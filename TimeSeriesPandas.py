@@ -2,6 +2,8 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib import dates
+from matplotlib.pyplot import autoscale
 
 # my_year = 2005
 # my_month = 2
@@ -80,26 +82,105 @@ import matplotlib.pyplot as plt
 
 df = pd.read_csv("C:\\Users\\KaiquedeJesusPessoaS\\Desktop\\UDEMY_TSA_FINAL\\Data\\starbucks.csv", index_col= 'Date', parse_dates = True)
 #print(df.head())
+#print(df.index)
+
+# se não estivesse com index em formato de data, poderia fazer isso
+# df.index = pd.to_datetime(df.index)
 
 
-df["Close"].plot(figsize = (12,5))
+# df["Close"].plot(figsize = (12,5))
 # plt.show()
 
 # Os primeiros 7 dias não tem média, pois não tem 7 dias para calcular a média, então recebem NULL
 #print(df.rolling(window = 7).mean())
 # Esse window é o tamanho da janela que vai ser calculado a média, nesse caso 30 dias
-df.rolling(window = 60).mean()["Close"].plot()
+# df.rolling(window = 60).mean()["Close"].plot()
 #plt.show()
 
 
 # Adiciona uma nova coluna com a média dos últimos 30 dias
-df["Close: 30 Day Mean"] = df["Close"].rolling(window=30).mean()
+# df["Close: 30 Day Mean"] = df["Close"].rolling(window=30).mean()
 
 # Criando um gráfico com a coluna Close e Close: 30 Day Mean para comparar a média mensal em relação ao fechamento real
 # assim com os dados de pelo menos metade do mês é possível observar um padrão
-df[["Close", "Close: 30 Day Mean"]].plot(figsize=(12, 5))
+# df[["Close", "Close: 30 Day Mean"]].plot(figsize=(12, 5))
 #plt.show()
 
 # Se quisesse expandir isso para um período maior e contar com dados que ainda não temos, podemos usar o método expanding
-df["Close"].expanding().mean().plot(figsize=(12, 5))
+#df["Close"].expanding().mean().plot(figsize=(12, 5))
+#plt.show()
+
+
+# df.plot()
+# plt.show()
+#
+# df["Close"].plot()
+# plt.show()
+#
+# df["Volume"].plot()
+# plt.show()
+
+
+
+# Se quiser adicionar nome nos eixos é possível fazer assim e adicionar a variável na hora da chamada
+# ou pode adicionar uma string diretamente na chamada do método
+title = "Starbucks Closing Stock Prices"
+ylabel = "Closing Price (USD)"
+xlabel = "Closing Date"
+
+#ax = df["Close"].plot(figsize = (12,6), title = title)
+#ax.set(xlabel = xlabel, ylabel = ylabel)
+#plt.show()
+
+# se quiser escalar automaticamente o gráfico é só usar
+#ax.autoscale(axis = "both", tight = "True")
+# pode passar ambos os eixos ou só um deles
+
+# Caso queira selecionar específicos períodos de tempo
+#df["Close"]["2017-01-01":"2017-12-31"].plot(figsize = (12,4))
+#plt.show()
+
+# ou se quiser pode usar o perído de tempo no final, mas a forma que plota o gráfico muda, pois ele abstrai depois que plotou o gráfico
+# alterando a forma que o dado é exibido, pois ele reescala o gráfico no final
+#df["Close"].plot(figsize = (12,4), xlim = ["2017-01-01", "2017-12-31"])
 plt.show()
+
+# Se quiser colocar limites no eixo y pode fazer assim
+#df["Close"].plot(figsize = (12,4), xlim = ["2017-01-01", "2017-12-31"], ylim = [0,70])
+#plt.show()
+
+# Se quiser estilizar a linha pode
+# ls para mudar o traço e c para mudar a cor
+# Tem que ser aspas simples
+#df["Close"].plot(figsize = (12,4), xlim = ["2017-01-01", "2017-12-31"], ylim = [40,70], ls = '--', c = 'green')
+#plt.show()
+
+
+ax = df["Close"].plot(xlim = ["2017-01-01", "2017-03-01"], ylim = [50,60], figsize = (12,4))
+ax.set(xlabel = " " )
+
+# byweekday = 0 é para começar a semana na segunda-feira
+# usar locator quando quer controlar o eixo x
+ax.xaxis.set_major_locator(dates.WeekdayLocator(byweekday = 0))
+
+# usar formatter quando quer controlar o formato do eixo x
+#ax.xaxis.set_major_formatter(dates.DateFormatter('%a-%B-%d'))
+
+ax.xaxis.set_major_formatter(dates.DateFormatter('%d'))
+
+ax.xaxis.set_minor_locator(dates.MonthLocator())
+
+# Se quiser adicionar espaço pode digitar apenas \n\n
+ax.xaxis.set_minor_formatter(dates.DateFormatter("\n\n%b"))
+
+# Se quiser adicionar grade no gráfico
+#LINHAS NA HORIZONTAL
+ax.yaxis.grid(True)
+#LINHAS NA VERTICAL
+ax.xaxis.grid(True)
+plt.show()
+
+
+
+
+
