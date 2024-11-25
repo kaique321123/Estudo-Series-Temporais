@@ -3,7 +3,6 @@
 # Ciclico são padrões que não se repetem em intervalos fixos.
 
 
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -12,6 +11,7 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from pylab import rcParams
 from statsmodels.tsa.holtwinters import SimpleExpSmoothing
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
+
 
 # Usa isso para definir um tamanho padrão para os gráficos
 # rcParams["figure.figsize"] = 12,5
@@ -127,12 +127,38 @@ fitted_model = model.fit(smoothing_level=alpha, optimized=False)
 df['SES12'] = fitted_model.fittedvalues.shift(-1)
 
 # Isso faz com que o SES12 seja a média exponencial do valor anterior
-#df['SES12'] = SimpleExpSmoothing(df['Thousands of Passengers']).fit(smoothing_level= alpha, optimezes = False).fittedvalues.shift(-1)
+df['SES12'] = SimpleExpSmoothing(df['Thousands of Passengers']).fit(smoothing_level= alpha, optimized = False).fittedvalues.shift(-1)
 #print(df.head())
 
 #df.plot()
 #plt.show()
 
 df['DES_add_12'] = ExponentialSmoothing(df['Thousands of Passengers'], trend = 'add').fit().fittedvalues.shift(-1)
+#print(df.head())
 
-print(df.head())
+# iloc[:24] é utilizado para pegar os 24 primeiros meses ou primeiros 2 anos
+#df[['Thousands of Passengers', 'SES12', 'DES_add_12']].iloc[:24].plot(figsize = (20,5))
+
+# Se quisermos os últimos 2 anos, basta mudar o iloc para [-24:]
+
+
+
+# Se ficar difícil saber se usa o modelo aditivo ou multiplicativo, teste com os dois e veja o que se adapta melhor ao problema
+
+#df['DES_mult_12'] = ExponentialSmoothing(df['Thousands of Passengers'], trend = 'mul').fit().fittedvalues.shift(-1)
+#df[['Thousands of Passengers', 'SES12', 'DES_add_12','DES_mult_12']].iloc[-24:].plot(figsize = (20,5))
+#df[['Thousands of Passengers', 'SES12', 'DES_add_12','DES_mult_12']].iloc[:24].plot(figsize = (20,5))
+#plt.show()
+
+
+# Triplo Modelo Exponencial
+
+# Se adicional o seasonal_periods = 12, ele vai dividir a sazonalidade em 12 partes e não precisa adicionar o fittedvalues com shift
+df['TES_mul_12'] = ExponentialSmoothing(df['Thousands of Passengers'], trend = 'mul', seasonal = 'mul', seasonal_periods=12).fit().fittedvalues
+df.plot()
+
+df[['Thousands of Passengers', 'DES_add_12','TES_mul_12']].iloc[-24:].plot(figsize = (12,6))
+df[['Thousands of Passengers', 'DES_add_12','TES_mul_12']].iloc[:24].plot(figsize = (12,6))
+
+plt.show()
+
