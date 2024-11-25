@@ -19,7 +19,7 @@ from matplotlib.pyplot import autoscale
 # print(my_date_time)
 
 # np.array(["2005-02-10", "2024-11-05", "2013-03-15"],dtype = 'datetime64 [h] ')
-#antes do dtype está de qaunto em quanto tempo vai pular e o datetime64[] é em que quantidade de tempo que vai pular, semanas, dias, anos, meses...
+#antes do dtype está de quanto em quanto tempo vai pular e o datetime64[] é em que quantidade de tempo que vai pular, semanas, dias, anos, meses...
 # pt = np.arange("2005-02-10", "2024-11-05",3, dtype = 'datetime64 [Y]')
 # np.arange(0,10,2)
 
@@ -181,6 +181,18 @@ ax.xaxis.grid(True)
 plt.show()
 
 
+# Para conseguir ver o tipo dos dados das colunas utilizar
+df.dtypes
 
+# Para converter uma coluna para o tipo datetime
+df["Date"] = pd.to_datetime(df["Date"])
 
+#Converter coluna para index
+df = df.set_index('Date')
 
+# don't work because Date is a index
+#df["Month"] = df["Date"].dt.month
+
+# this work when Date is a index
+df['Month']=df.index.month
+df.head()
