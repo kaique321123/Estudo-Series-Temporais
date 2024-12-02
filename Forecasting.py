@@ -1,7 +1,9 @@
 import pandas as pd
-#import numpy as np
-#import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib.pyplot as plt
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+from statsmodels.tsa.statespace.tools import diff
 
 # Carregar o dataset
 df = pd.read_csv('C:\\Users\\KaiquedeJesusPessoaS\\Desktop\\UDEMY_TSA_FINAL\\Data\\airline_passengers.csv',
@@ -13,8 +15,8 @@ df.index.freq = 'MS'
 
 df['Thousands of Passengers'] = df['Thousands of Passengers'].astype('float64')
 
-# Se você quer prever 1 ano você deve ter pelo menos 10 ano de dados para usar no treinamento ou 80% usa para treino e 20% para teste
-# e assim obter resultados mais precisos
+#Se você quer prever 1 ano você deve ter pelo menos 10 ano de dados para usar no treinamento ou 80% usa para treino e 20% para teste
+#e assim obter resultados mais precisos
 #print(df.info())
 
 # Separar dados de treino e teste
@@ -31,12 +33,12 @@ fitted_model = ExponentialSmoothing(train_data['Thousands of Passengers'],
 # O método forecast() é utilizado para prever os dados de teste, cada linha nesses dados tem 1 mês
 # então se quiser prever 1 mês a frente você deve passar 12 como argumento
 test_predictions = fitted_model.forecast(36)
-#print(test_predictions)
+print(test_predictions)
 
 train_data['Thousands of Passengers'].plot(legend=True, label ='TRAIN DATA', figsize=(12,8))
 test_data['Thousands of Passengers'].plot(legend=True, label='TEST DATA')
 test_predictions.plot(legend=True, label = 'PREDICTIONS', xlim=['1958-01-01','1961-01-01'])
-#plt.show()
+plt.show()
 
 
 
@@ -57,6 +59,74 @@ test_predictions.plot(legend=True, label = 'PREDICTIONS', xlim=['1958-01-01','19
 # Root Mean Squared Error (RMSE) - então por isso criaram a raiz quadrada do MSE, para voltar ao valor original
 # mas a resposta se temos um bom RMSE é subjetiva, depende do problema, pois há casos que esse valor é aceitável
 # e outros que é ináceitavel
+
+mean_squared_error_ = mean_squared_error(test_data, test_predictions)
+mean_absolute_error_ = mean_absolute_error(test_data, test_predictions)
+
+print(test_data.describe())
+# Tem uma média de 428,5 e um desvio padrão de 79,3
+# Já que o MAE deu 63,03 é possível dizer que o modelo está indo bem, pois o erro é menor que o desvio padrão
+print(f'Mean Squared Error: {mean_squared_error_}')
+print(f'Mean Absolute Error: {mean_absolute_error_}')
+# O RMSE deu 74,9 que é menor que o desvio padrão, então o modelo está indo bem
+print(f'raiz do MSE : {np.sqrt(mean_squared_error_)}')
+
+# Nosso modelo até agora está se ajustando bem aos dado já que teve valores de MAE e RMSE menor que o desvio padrão, então agora vamos prever para o futuro
+
+# Agora vamos prever para o futuro
+# O modelo já foi treinado com os dados de treino, então agora vamos prever para o futuro
+# seasonal_periods define o ciclo de sazonalidade dos dados e nesse caso são 12 meses, ou seja, a cada 12 meses os dados se repetem
+final_model = ExponentialSmoothing(df['Thousands of Passengers'],
+                                 trend='mul',
+                                 seasonal='mul',
+                                 seasonal_periods=12).fit()
+forecast_predictions = final_model.forecast((36))
+
+df['Thousands of Passengers'].plot(figsize=(12,8))
+forecast_predictions.plot()
+plt.show()
+
+# Dizemos que um dataset é estacionário quando ele não tem tendência e nem sazonalidade
+# ou seja, as flutuações nos dados são inteiramente devido a forças externas e ruídos
+
+
+# Vamos ver um dataset com isso
+# parse_dates=True é para transformar a coluna de data em datetime
+df2 = pd.read_csv('C:\\Users\\KaiquedeJesusPessoaS\\Desktop\\UDEMY_TSA_FINAL\\Data\\samples.csv', index_col=0, parse_dates=True)
+#print(df2.head())
+
+# A coluna "a" não apresenta tendência e nem sazonalidade, então ela é estacionária
+df2["a"].plot()
+#plt.show()
+# Apesar dos dados não seguirem uma sazonalidade, eles ainda são previsíveis, pois eles seguem uma tendência
+df2['b'].plot()
+#plt.show()
+
+# para prever os dados como da coluna b podemos olhar o estácionário e ver o que é conhecido
+# como diferença e é um método simples que calcula a diferença entre pontos consecutivos
+
+#shift é um método que move os dados para cima ou para baixo, no caso de 1, move 1 para baixo
+# Assim é uma forma de fazer na mão
+#print(df2["b"] - df2["b"].shift(1))
+
+# O bom dessa função no lugar de fazer a mãe é que a primeira linha não fica com o valor nulo
+diff(df2["b"],k_diff=1).plot()
+#plt.show()
+# após usar essa função o gráfico se transformou em um gráfico estaionário, ou seja, sem tendência e sem sazonalidade
+
+
+
+# ACF e PACF
+# ACF - AutoCorrelation Function - é uma medida de correlação entre um ponto e outro ponto em um intervalo de tempo
+# PACF - Partial AutoCorrelation Function - é uma medida de correlação entre um ponto e outro ponto em um intervalo de tempo, mas
+# Correlação é basicamente a relação entre 2 variáveis, então se uma variável aumenta a outra também aumenta e se uma diminui a outra diminui também
+
+
+
+
+
+
+
 
 
 
