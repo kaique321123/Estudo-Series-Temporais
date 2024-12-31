@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from statsmodels.tsa.arima_model import ARIMA
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from statsmodels.tsa.statespace.tools import diff
@@ -8,6 +9,7 @@ import statsmodels.api as sm
 from statsmodels.tsa.stattools import acovf, acf, pacf, pacf_yw, pacf_ols
 from pandas.plotting import lag_plot
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.tsa.ar_model import AR, ARResults, AutoReg
 
 # # Carregar o dataset
 # df = pd.read_csv('C:\\Users\\KaiquedeJesusPessoaS\\Desktop\\UDEMY_TSA_FINAL\\Data\\airline_passengers.csv',
@@ -177,4 +179,43 @@ plot_acf(df1, lags=40)
 plot_acf(df2, lags=40)
 #plt.show()
 
-plot_acf(df2, lags = 40, title = "Daily Female Births")
+plot_pacf(df2, lags = 40, title = "Daily Female Births")
+#plt.show()
+
+
+# ARIMA
+# muitos modelos são baseados no ARIMA, que é um modelo de média móvel e autoregressivo
+# ARIMA funciona melhor quando trabalha com series temporais onde o dado está diretamente relacionado com o aquele período
+# dados onde vemos um claro crescimento e sasonalidade baseada no tempo
+
+df3 = pd.read_csv('C:\\Users\\KaiquedeJesusPessoaS\\Desktop\\UDEMY_TSA_FINAL\\Data\\uspopulation.csv', index_col='DATE', parse_dates=True)
+df3.index.freq = 'MS'
+print(df3.head())
+print("Quantidade de Meses no DataFrame:" ,len(df3))
+
+train = df3.iloc[:84] # seria os 84 primeiros
+test =  df3.iloc[84:] # seria os 12 últimos
+
+model_AR = AutoReg(train["PopEst"], lags = 1) # "lags" substitui o "maxlag" do AR
+
+AR1fit = model_AR.fit()
+
+# aic é um critério de informação de Akaike, quanto menor melhor
+print("Valor aic:",AR1fit.aic)
+
+print(AR1fit.params)
+
+start = len(train)
+end = len(train) + len(test) - 1
+
+prediction1 = AR1fit.predict(start = start, end = end)
+
+#print(prediction1)
+print(test)
+print("\n")
+
+prediction1 = prediction1.rename("AR(1) Predictions")
+print(prediction1)
+
+test.plot()
+plt.show()
